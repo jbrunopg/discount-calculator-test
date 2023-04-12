@@ -1,3 +1,7 @@
+# Importação da biblioteca
+
+from django.http import JsonResponse
+
 def calculator(consumption: list, distributor_tax: float, tax_type: str) -> tuple:
     """
     returns a tuple of floats contained anual savings, monthly savings, applied_discount and coverage
@@ -9,12 +13,59 @@ def calculator(consumption: list, distributor_tax: float, tax_type: str) -> tupl
 
     # your code here #
 
-    return (
-        round(annual_savings, 2),
-        round(monthly_savings, 2),
-        applied_discount,
-        coverage,
-    )
+    # Colocando os campos de entrada (Consumo dos últimos 3 meses, valor da tarifa e tipo da tarifa)
+    consumo1 = float(request.GET.get('consumo1', 0))
+    consumo2 = float(request.GET.get('consumo2', 0))
+    consumo3 = float(request.GET.get('consumo3', 0))
+    tarifa = float(request.GET.get('tarifa', 0))
+    tipo_tarifa = request.GET.get('tipo_tarifa', '')
+
+    # Calcula o consumo médio mensal
+    consumo_medio = (consumo1 + consumo2 + consumo3) / 3
+
+        # Calcula o desconto aplicado com base no tipo de tarifa e no consumo médio
+    if consumo_medio < 10000:
+        if tipo_tarifa == 'Residencial':
+            desconto = 0.18
+        elif tipo_tarifa == 'Comercial':
+            desconto = 0.16
+        elif tipo_tarifa == 'Industrial':
+            desconto = 0.12
+    elif consumo_medio <= 20000:
+        if tipo_tarifa == 'Residencial':
+            desconto = 0.22
+        elif tipo_tarifa == 'Comercial':
+            desconto = 0.18
+        elif tipo_tarifa == 'Industrial':
+            desconto = 0.15
+    else:
+        if tipo_tarifa == 'Residencial':
+            desconto = 0.25
+        elif tipo_tarifa == 'Comercial':
+            desconto = 0.22
+        elif tipo_tarifa == 'Industrial':
+            desconto = 0.18
+    
+    # Calcula a economia mensal e anual com base no consumo médio, tarifa e desconto aplicado
+    economia_mensal = consumo_medio * tarifa * desconto
+    economia_anual = economia_mensal * 12
+
+    # Calcula a cobertura com base no consumo médio
+    if consumo_medio < 10000:
+        cobertura = 0.9
+    elif consumo_medio <= 20000:
+        cobertura = 0.95
+    else:
+        cobertura = 0.99
+
+
+  # Retorna os resultados em formato JSON
+    return JsonResponse({
+        'economia_anual': economia_anual,
+        'economia_mensal': economia_mensal,
+        'desconto_aplicado': desconto,
+        'cobertura': cobertura
+    })
 
 
 if __name__ == "__main__":
